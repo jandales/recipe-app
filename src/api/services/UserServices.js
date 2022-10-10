@@ -97,7 +97,7 @@ module.exports = class UserServices {
     }
 
     static async deleteAccount(id) {
-        let _id = mongoose.Types.ObjectId(id);   
+        let _id = mongoose.Types.ObjectId(id);
         await Recipe.deleteMany({'user' : _id})
         await User.findByIdAndDelete(_id);
         return true;
@@ -106,6 +106,13 @@ module.exports = class UserServices {
     static async findOne(params) {
         const res = await Recipe.findOne(params);    
         return res;
+    }
+
+    static async confirmDelete(user_id, password){
+        const user = await User.findOne({_id : user_id });
+        let validPassword = await comparePassword(password, user.password)
+        if (validPassword) return true;
+        return false;
     }
 
 

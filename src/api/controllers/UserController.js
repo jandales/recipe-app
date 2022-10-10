@@ -45,8 +45,14 @@ module.exports = {
     },
 
     deleteAccount : async (req, res) => {  
-        const status = await UserServices.deleteAccount(req.user.id)
+        const status = await UserServices.deleteAccount(req.user.id, req.body.password)
         if (status)  res.status(200).json({message : 'Successfully Deleted'});
-    }
+    },
+
+    confirmDelete : async (req, res) => { 
+        const status = await UserServices.confirmDelete(req.user.id, req.body.password)
+        return res.status(200).json(status)
+    },
+  
     
 }

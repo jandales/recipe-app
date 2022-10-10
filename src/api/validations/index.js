@@ -6,6 +6,7 @@ const { EmailRequestRules } = require('./auth/EmailRequestRules');
 const { ConfirmationPasswordRequestRules } = require('./auth/ConfirmationPasswordRequestRules');
 const { LoginRequestRules } = require('./auth/LoginRequestRules');
 const { RegisterRequestRules } = require('./auth/RegisterRequestRules');
+const { PasswordRequestRules } = require('./user/PasswordRequestRules');
 
 const validateRules = (req, res, next) => {  
 
@@ -30,5 +31,6 @@ module.exports = {
     ConfirmationPasswordRequestRules,
     LoginRequestRules,
     RegisterRequestRules,
+    PasswordRequestRules,
     validateRules
 }

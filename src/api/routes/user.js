@@ -4,6 +4,7 @@ const controller = require('../controllers/UserController');
 
 const { UserChangePasswordRequestRules, 
         UserUpdateRequestRules,
+        PasswordRequestRules,
         validateRules } = require('../validations/index');
 
 const { isAuthenticated } = require('../middleware/auth');
@@ -46,6 +47,13 @@ router.put('/user/upload/avatar',
 router.delete('/user/remove/avatar',
         isAuthenticated,
         controller.removeAvatar
+);
+
+router.post('/user/confirm/password',
+        isAuthenticated,
+        PasswordRequestRules(),
+        validateRules, 
+        controller.confirmDelete
 );
 
 router.get('/auth', isAuthenticated, controller.auth);
