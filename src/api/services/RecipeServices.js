@@ -85,12 +85,12 @@ module.exports = class RecipeServices {
         return res;
     }    
 
-    static async getRecipeUserCount (user_id) {
-        const res = await Recipe.find({'user._id' : user_id}).count();           
-        return res ?? 0;
+    static async getRecipeUserCount(id) {
+        const res = await Recipe.find({'user' : id}).count(); 
+        return res;
     }
 
-    static async getSavedCount (user_id) {
+    static async getSavedCount(user_id) {
         const res = await this.getSavedRecipes(user_id);        
         return res.length;
     }

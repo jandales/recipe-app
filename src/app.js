@@ -1,6 +1,5 @@
 const express = require('express');
 const path = require('path');
-const mongoose = require('mongoose');
 const logger = require('morgan')
 const fileUpload = require('express-fileupload')
 const session = require('express-session');
@@ -11,12 +10,8 @@ const cors = require('cors');
 const routes = require('./api/routes/index');
 
 require('dotenv').config({path : path.resolve(__dirname, '..', '.env')});
-
-
 const connectDB = require('./database/index');
-
 const passport = require('passport');
-
 require('./config/passport')(passport)
 
 const app =  express();
@@ -31,6 +26,7 @@ connectDB();
 
 app.use(morgan('dev'));
 
+//cors
 app.use(function(req, res, next) {  
   res.header('Access-Control-Allow-Origin', req.headers.origin);
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
