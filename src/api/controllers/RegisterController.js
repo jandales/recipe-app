@@ -7,7 +7,7 @@ const register = async (req, res) => {
 
     const existUser = await User.findOne({email : email }).count();
 
-    if (existUser > 0) return res.status(409).json( { message : 'Email already Resgister'});
+    if (existUser > 0) return res.status(409).json( { message : 'Email already Resgistered'});
    
     try {
     
