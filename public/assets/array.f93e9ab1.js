@@ -1,0 +1,1 @@
+const s=async e=>new Promise((r,t)=>{var n=new FileReader;n.onload=()=>{r(n.result)},n.onerror=t,n.readAsDataURL(e)});var l={fileReaderAsync:s};const o=(e,a)=>e.filter(function(r){return r!=a}),i=(e,a)=>{let r=!1;for(let t=0;t<e.length;t++)if(e[t]==a)return r=!0;return r};var u={remove:o,exist:i};export{u as a,l as f};
