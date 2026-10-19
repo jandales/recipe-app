@@ -4,91 +4,93 @@ const FacebookStrategy = require('passport-facebook').Strategy;
 const bcrypt = require("bcrypt");
 
 // Load Model
-const User =  require('../api/models/user');
+const User = require('../api/models/user');
 
-module.exports =  (passport) => {
+module.exports = (passport) => {
     // local
     passport.use(new LocalStrategy({ usernameField: 'email' },
-        (email, password, done) => {       
-          User.findOne({ email : email }, function (err, user) {          
-            if (err) { return done(err); }
-            if (!user) { return done(null, false); }           
-            bcrypt.compare(password, user.password, (err, isMatch) => {
-                if(err) return done(err);
-                if(!isMatch) return done(null, null);
-                done(null, user);
-            });        
-          });
+        (email, password, done) => {
+            User.findOne({ email: email }, function (err, user) {
+                if (err) { return done(err); }
+                if (!user) { return done(null, false); }
+                bcrypt.compare(password, user.password, (err, isMatch) => {
+                    if (err) return done(err);
+                    if (!isMatch) return done(null, null);
+                    done(null, user);
+                });
+            });
         }
     ));
-    // google 
-    passport.use(new GoogleStrategy({
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: process.env.GOOGLE_CALLBACK_URL,
-    },
-    async(accessToken, refreshToken, profile, done) => {  
-      try {
-          let user = await User.findOne({ provider_id: profile.id})
 
-          if(user) done(null, user)
+    // google (optional — skip if env vars missing so Render can boot)
+    if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_CALLBACK_URL) {
+        passport.use(new GoogleStrategy({
+            clientID: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            callbackURL: process.env.GOOGLE_CALLBACK_URL,
+        },
+            async (accessToken, refreshToken, profile, done) => {
+                try {
+                    let user = await User.findOne({ provider_id: profile.id })
 
-          const newUser =  {
-            provider_id : profile.id,
-            provider : 'google',
-            name : profile.displayName, 
-            image : profile.photos[0].value,           
-            email : profile.emails[0].value,        
-          }
+                    if (user) return done(null, user)
 
-          user =  await User.create(newUser);
+                    const newUser = {
+                        provider_id: profile.id,
+                        provider: 'google',
+                        name: profile.displayName,
+                        image: profile.photos[0].value,
+                        email: profile.emails[0].value,
+                    }
 
-          done(null, user);
+                    user = await User.create(newUser);
 
-      } catch(err) {
+                    done(null, user);
 
-        console.log(err);
+                } catch (err) {
+                    console.log(err);
+                    done(err);
+                }
+            }));
+    }
 
-      }      
-      
-    })); 
-    // facebook 
-    passport.use(new FacebookStrategy({
-      clientID: process.env.FACEBOOK_CLIENT_ID,
-      clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-      callbackURL: process.env.FACEBOOK_CALLBACK_URL,
-    },
-    async(accessToken, refreshToken, profile, done) => {  
-      try {
-          let user = await User.findOne({ provider_id : profile.id})
+    // facebook (optional)
+    if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET && process.env.FACEBOOK_CALLBACK_URL) {
+        passport.use(new FacebookStrategy({
+            clientID: process.env.FACEBOOK_CLIENT_ID,
+            clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+            callbackURL: process.env.FACEBOOK_CALLBACK_URL,
+        },
+            async (accessToken, refreshToken, profile, done) => {
+                try {
+                    let user = await User.findOne({ provider_id: profile.id })
 
-          if(user) done(null, user)
+                    if (user) return done(null, user)
 
-          const newUser =  {
-            provider_id : profile.id,
-            provider : 'facebook',
-            name : profile.displayName, 
-            email : profile.id,   
+                    const newUser = {
+                        provider_id: profile.id,
+                        provider: 'facebook',
+                        name: profile.displayName,
+                        email: profile.id,
+                    }
 
-          }
+                    user = await User.create(newUser);
 
-          user =  await User.create(newUser);
+                    done(null, user);
 
-          done(null, user);
+                } catch (err) {
+                    console.log(err);
+                    done(err);
+                }
+            }));
+    }
 
-      } catch(err) {
-        console.log(err);
-      }  
-    }));   
-    passport.serializeUser(function(user, done) {
-      done(null, user.id);
+    passport.serializeUser(function (user, done) {
+        done(null, user.id);
     });
-    passport.deserializeUser(function(id, done) {
-      User.findById(id, function (err, user) {
-        done(err, user);
-      });
+    passport.deserializeUser(function (id, done) {
+        User.findById(id, function (err, user) {
+            done(err, user);
+        });
     });
 }
-
-
-

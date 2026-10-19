@@ -4,8 +4,8 @@ const logger = require('morgan')
 const bodyParser = require('body-parser')
 const path = require('path');
 const app = express()
-//env
-require('dotenv').config({path : path.resolve(__dirname, '..', '.env')});
+//env — root .env for local; Render injects process.env directly
+require('dotenv').config({ path: path.resolve(__dirname, '..', '..', '.env') });
 
 app.use(logger('dev'))
 app.use(require('./sessions'))
@@ -19,7 +19,7 @@ app.use(passport.session())
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({
-  extended: true
+    extended: true
 }))
 
 const connectDB = require('../database/index');
