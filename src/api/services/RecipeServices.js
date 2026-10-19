@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const { populate } = require('../models/recipe');
 const { upload , unlink } = require('../../helper/upload');
 
-const PER_PAGE = Number(process.env.PAGINATION_PERPAGE) || 10; 
+const PER_PAGE = Number(process.env.PAGINATION_PERPAGE) || 50; 
 const sort = { createdAt : -1 }
 const populateUser = { path : 'user',  select : ['name', 'email', 'image', 'provider', 'provider_id']} 
 
