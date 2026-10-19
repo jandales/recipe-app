@@ -11,18 +11,28 @@ const recepiByUser = async (req,res) => {
     let _id = req.params.id;
     let _page = req.query.page || 0;    
     const isValid = mongoose.Types.ObjectId.isValid(_id);
-    if (!isValid) return;
-    const recipes = await RecipeServices.findByUserId(_id, _page); 
+    if (!isValid) return res.status(400).json({ message: 'Invalid user id' });
+    const isOwner = req.isAuthenticated?.() && String(req.user.id) === String(_id);
+    const recipes = await RecipeServices.findByUserId(_id, _page, { publicOnly: !isOwner }); 
     res.status(200).json(recipes);    
 }
 
 const show = async (req,res) => {
 
     try {       
-        let recipe = await RecipeServices.findById(req.params.id); 
+        let recipe = await RecipeServices.findById(req.params.id);
+        if (!recipe) return res.status(404).json({ message: 'Recipe not found' });
+
+        const ownerId = recipe.user?._id || recipe.user;
+        const isOwner = req.isAuthenticated?.() && String(req.user.id) === String(ownerId);
+        if (recipe.status === 'private' && !isOwner) {
+            return res.status(404).json({ message: 'Recipe not found' });
+        }
+
         res.status(200).json(recipe).end();
     } catch(err) {
         console.log(err);
+        res.status(500).json({ message: 'Could not load recipe' });
     }
    
 

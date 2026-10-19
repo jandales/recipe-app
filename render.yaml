@@ -3,11 +3,13 @@ services:
     name: recipe-app
     env: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm install && npm run build:client
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PAGINATION_PERPAGE
+        value: "50"
       - key: DB_URL
         sync: false
       - key: SESSION_SECRET

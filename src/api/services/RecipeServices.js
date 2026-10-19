@@ -3,9 +3,40 @@ const mongoose = require('mongoose');
 const { populate } = require('../models/recipe');
 const { upload , unlink } = require('../../helper/upload');
 
-const PER_PAGE = process.env.PAGINATION_PERPAGE; 
+const PER_PAGE = Number(process.env.PAGINATION_PERPAGE) || 10; 
 const sort = { createdAt : -1 }
 const populateUser = { path : 'user',  select : ['name', 'email', 'image', 'provider', 'provider_id']} 
+
+function parseMaybeJsonArray(value) {
+    if (Array.isArray(value)) return value.filter(Boolean);
+    if (typeof value === 'string') {
+        try {
+            const parsed = JSON.parse(value);
+            if (Array.isArray(parsed)) return parsed.filter(Boolean);
+        } catch (_) {
+            // fall through — treat as a single line
+        }
+        return value.trim() ? [value.trim()] : [];
+    }
+    return [];
+}
+
+function normalizeRecipeBody(body = {}) {
+    const next = { ...body };
+    if (next.ingredients !== undefined) {
+        next.ingredients = parseMaybeJsonArray(next.ingredients);
+    }
+    if (next.instructions !== undefined) {
+        next.instructions = parseMaybeJsonArray(next.instructions);
+    }
+    // Keep recipe meta fields as plain strings
+    ['cookTime', 'prepTime', 'difficulty', 'servings', 'name', 'description', 'status'].forEach((key) => {
+        if (next[key] !== undefined && next[key] !== null) {
+            next[key] = String(next[key]).trim();
+        }
+    });
+    return next;
+}
 
 module.exports = class RecipeServices {
 
@@ -14,47 +45,86 @@ module.exports = class RecipeServices {
                                 .sort(sort)
                                 .populate(populateUser)        
                                 .limit(PER_PAGE)
-                                .skip(page);
+                                .skip(Number(page) || 0);
         return res;
     }
 
-    static async findByUserId (id, page = 0) {       
-        const res = await Recipe.find({ 'user' : id  })
-                                .sort(sort)                
+    static async findByUserId (id, page = 0, options = {}) {       
+        const filter = { user: id };
+        if (options.publicOnly) filter.status = 'public';
+        const res = await Recipe.find(filter)
+                                .sort(sort)
+                                .populate(populateUser)
                                 .limit(PER_PAGE)
-                                .skip(page);
+                                .skip(Number(page) || 0);
         return res;
     }
 
     static  async getSavedRecipes (user_id, page = 0) {
         const res = await Recipe.find({ saved : user_id })
-                                .sort(sort)       
+                                .sort(sort)
+                                .populate(populateUser)
                                 .limit(PER_PAGE)
-                                .skip(page);
+                                .skip(Number(page) || 0);
         return res;
     }
 
     static async store (req) {
-  
-        if (req.files && Object.keys(req.files).length > 0) { 
-            req.body.image = upload(req.files.image, 'recipe'); 
+        const body = normalizeRecipeBody(req.body || {});
+        if (req.files && Object.keys(req.files).length > 0 && req.files.image) { 
+            body.image = upload(req.files.image, 'recipe'); 
         }
 
-        let user = req.user.id;
-        req.body = {...req.body, user}
-        let recipe  = new Recipe(req.body);
-        recipe = await recipe.save();
+        const recipe = await new Recipe({
+            name: body.name,
+            description: body.description,
+            status: body.status || 'public',
+            ingredients: body.ingredients || [],
+            instructions: body.instructions || [],
+            cookTime: body.cookTime || '',
+            prepTime: body.prepTime || '',
+            difficulty: body.difficulty || '',
+            servings: body.servings || '',
+            image: body.image || '',
+            user: req.user.id,
+            saved: [],
+        }).save();
         return recipe;
     }
 
     static async update (id, req) {  
-        
-        if (req.files && Object.keys(req.files).length > 0) { 
-            let path =  upload(req.files.image, 'recipe');  
-            req.body.image = path;          
-        }  
-        const recipe = await Recipe.findByIdAndUpdate(id, req.body);   
-        unlink(recipe.image);
+        const existing = await Recipe.findById(id);
+        if (!existing) return null;
+
+        const body = normalizeRecipeBody(req.body || {});
+        const hasNewImage = !!(req.files && req.files.image && req.files.image.name);
+
+        const update = {
+            name: body.name,
+            description: body.description,
+            status: body.status,
+            ingredients: body.ingredients,
+            instructions: body.instructions,
+            cookTime: body.cookTime ?? existing.cookTime ?? '',
+            prepTime: body.prepTime ?? existing.prepTime ?? '',
+            difficulty: body.difficulty ?? existing.difficulty ?? '',
+            servings: body.servings ?? existing.servings ?? '',
+            // Always keep the current image unless a new file is uploaded
+            image: existing.image || '',
+        };
+
+        if (hasNewImage) { 
+            const previousImage = existing.image;
+            update.image = upload(req.files.image, 'recipe');
+            if (previousImage && previousImage !== update.image) {
+                unlink(previousImage);
+            }
+        }
+
+        const recipe = await Recipe.findByIdAndUpdate(id, { $set: update }, {
+            new: true,
+            runValidators: true,
+        }).populate(populateUser);
         return recipe;
     }
 
@@ -97,7 +167,10 @@ module.exports = class RecipeServices {
 
     static async search (keyword) {
         
-        const res = await Recipe.find( { name : { $regex : `^${keyword}.*` , $options: 'i' } } )
+        const res = await Recipe.find({
+                                    status: 'public',
+                                    name: { $regex: `^${keyword}.*`, $options: 'i' },
+                                })
                                 .populate(populateUser)
                                 .sort(sort)       
                                 .limit(PER_PAGE)

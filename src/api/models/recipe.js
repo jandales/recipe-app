@@ -26,6 +26,22 @@ const recipeSchema = new Schema({
         type : String,
         required : 'Status is required',
     },
+    cookTime : {
+        type : String,
+        default : '',
+    },
+    prepTime : {
+        type : String,
+        default : '',
+    },
+    difficulty : {
+        type : String,
+        default : '',
+    },
+    servings : {
+        type : String,
+        default : '',
+    },
     saved : {
         type: Array,       
     },

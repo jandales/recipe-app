@@ -1,6 +1,6 @@
-# Recipe App
+# Recipe App (Simply Savored)
 
-Recipe app built with Node.js, Express, and MongoDB.
+Recipe sharing app built with **Node.js / Express / MongoDB** and a **Vue 3** frontend.
 
 ## Prerequisites
 
@@ -9,7 +9,7 @@ Recipe app built with Node.js, Express, and MongoDB.
 
 ## Setup
 
-1. Install dependencies:
+1. Install server dependencies:
 
 ```bash
 npm install
@@ -27,15 +27,24 @@ APP_CLIENT_URL=http://localhost:3001
 DB_URL=mongodb+srv://USERNAME:PASSWORD@cluster.mongodb.net/recipe-app?retryWrites=true&w=majority
 
 SESSION_SECRET=change-me-to-a-random-secret
-PAGINATION_PERPAGE=10
+PAGINATION_PERPAGE=50
 ```
 
 Optional: Google/Facebook OAuth and email (`MAIL_*`) variables — leave blank if unused.
 
-3. In MongoDB Atlas (if using cloud):
+Google callback must be exactly:
 
-- Create a database user and put the username/password in `DB_URL`
-- Under **Network Access**, allow your IP (or `0.0.0.0/0` for testing)
+```text
+http://localhost:3001/api/auth/google/callback
+```
+
+(or your Render URL with `/api/auth/google/callback`)
+
+3. Build the frontend:
+
+```bash
+npm run build:client
+```
 
 ## Run locally
 
@@ -43,15 +52,19 @@ Optional: Google/Facebook OAuth and email (`MAIL_*`) variables — leave blank i
 npm start
 ```
 
-Or with auto-reload:
+Or with auto-reload for the API:
 
 ```bash
 npm run start:dev
 ```
 
-Open **http://localhost:3001**
+Frontend-only Vite dev server (proxies `/api` to port 3001):
 
-You should see `Mongodb connected` and `app is running on port 3001` in the terminal.
+```bash
+npm run dev:client
+```
+
+Open **http://localhost:3001**
 
 ### First login
 
@@ -59,16 +72,30 @@ There is no default account. Click **Register**, create a user, then log in.
 
 ### Recipes on the homepage
 
-The homepage lists recipes with status **public**. Private recipes only appear on your own recipes page.
+The homepage lists recipes with status **public**. Private recipes appear on your profile / My Recipes page.
 
 ## Scripts
 
 | Script | Description |
 |--------|-------------|
-| `npm start` | Start the server |
-| `npm run start:dev` | Start with nodemon |
-| `npm run build:css` | Rebuild Tailwind CSS (watch mode) |
+| `npm start` | Start the Express server |
+| `npm run start:dev` | Start API with nodemon |
+| `npm run build:client` | Install & build the Vue app into `public/` |
+| `npm run dev:client` | Vite frontend dev server |
+| `npm run build:css` | Legacy Tailwind watch (optional) |
+
+## Project structure
+
+- `src/` — Express API, auth, MongoDB models
+- `client/` — Vue 3 + Vite UI source
+- `public/` — built frontend assets + uploaded images (`public/img`)
 
 ## Deploy (Render)
 
-See `render.yaml`. Set `DB_URL` and `SESSION_SECRET` in the Render environment.
+`render.yaml` builds with:
+
+```bash
+npm install && npm run build:client
+```
+
+Set `DB_URL`, `SESSION_SECRET`, `APP_URL`, and `APP_CLIENT_URL` in the Render environment.

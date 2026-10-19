@@ -5,16 +5,13 @@ const middleware = require('../middleware/auth');
 const validate = require('../validations/index');
 const recipePermission = require('../permissions/recipes/index');
 
-router.get('/recipes', 
-            middleware.isAuthenticated, 
+router.get('/recipes',
             controller.index);
 
 router.get('/recipes/search/:keyword',
-            middleware.isAuthenticated,
             controller.search);
 
-router.get('/recipe/:id',           
-            middleware.isAuthenticated,
+router.get('/recipe/:id',
             controller.show);
 
 router.post('/recipe/store', 

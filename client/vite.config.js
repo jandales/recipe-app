@@ -1,0 +1,20 @@
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import { resolve } from 'path'
+
+export default defineConfig({
+  plugins: [vue()],
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': 'http://localhost:3001',
+      '/img': 'http://localhost:3001',
+      '/auth': 'http://localhost:3001',
+    },
+  },
+  build: {
+    outDir: resolve(__dirname, '../public'),
+    emptyOutDir: false,
+    assetsDir: 'assets',
+  },
+})

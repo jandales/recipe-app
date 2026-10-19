@@ -6,8 +6,13 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:css": "postcss public/styles/tailwind.css -o public/styles/styles.css --watch",
+    "build:client": "npm install --prefix client && npm run build --prefix client",
+    "build": "npm run build:client",
     "start": "node src/app.js",
-    "start:dev": "nodemon src/app.js"
+    "start:dev": "nodemon src/app.js",
+    "dev:client": "npm run dev --prefix client",
+    "seed:users": "node src/database/seedUsers.js",
+    "seed:recipes": "node src/database/seedRecipes.js"
   },
   "author": "",
   "license": "ISC",
