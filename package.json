@@ -38,7 +38,7 @@
     "postcss": "^8.4.16",
     "postcss-cli": "^10.0.0",
     "tw-elements": "^1.0.0-alpha12",
-    "nodemon": "^2.0.20"    
+    "nodemon": "^2.0.20"
   },
   "devDependencies": {
     "nodemon": "^2.0.20",

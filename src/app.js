@@ -11,9 +11,8 @@ app.use(require('./config/index'));
 // router middleware
 app.use(require('./api/routes/index'));
 
-if (process.env.NODE_ENV === 'production') {
-    app.get(/.*/, (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'index.html')));
-}
+// SPA fallback: serve index.html for client-side routes (e.g. /register)
+app.get(/.*/, (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'index.html')));
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
